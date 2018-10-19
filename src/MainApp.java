@@ -6,12 +6,12 @@ public class MainApp extends PApplet {
 	private Logic logic;
 
 	public static void main(String[] args) {
-		PApplet.main("MainFiles.MainApp");
+		PApplet.main("MainApp");
 	}
 	
 	@Override 
 	public void settings() {
-		size (1200, 700, P3D);
+		size (1200, 700);
 	}
 	
 	@Override
@@ -22,7 +22,8 @@ public class MainApp extends PApplet {
 	
 	@Override 
 	public void draw() {
-		background (184,188,188);
+		background (255);
+		//background (184,188,188);
 		smooth();
 		logic.display();
 	}
