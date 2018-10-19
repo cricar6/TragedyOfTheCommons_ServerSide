@@ -204,6 +204,13 @@ public class MultiAdmin extends Thread {
 			players.get(id).setDemanda(demanda);
 
 		}
+		if (msgReceived.contains("IMEne")) {
+			String[] separated = msgReceived.split(":");
+			int id = Integer.parseInt(separated[1]);
+			int energia = Integer.parseInt(separated[2]);
+			players.get(id).setEnergiaGeneral(energia);
+
+		}
 		if (msgReceived.contains("termine")) {
 			turno++;
 			for (int i = 0; i < players.size(); i++) {
