@@ -22,6 +22,7 @@ public class MultiAdmin extends Thread {
 	private boolean identified;
 	private int turno;
 	private int maxRondas, ronda, turnosPorEstacion;
+	private int pasiveEnergy;
 
 	private ArrayList<Player> players;
 
@@ -35,6 +36,8 @@ public class MultiAdmin extends Thread {
 		maxRondas = turnosPorEstacion*5;
 		ronda = 0;
 		turno = 0;
+		//cambiar dependiendo de la estacion
+		pasiveEnergy = 500;
 		generateRandomTurn();
 	}
 
@@ -227,7 +230,7 @@ public class MultiAdmin extends Thread {
 				if (ronda == turnosPorEstacion*4) 
 					enviar ("juegoTerminado");
 				
-			
+				enviar("EnergyByRound:" + pasiveEnergy);
 			}
 			enviar("cambioTurno:" + turno);
 		}
