@@ -9,10 +9,11 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Observable;
 
 import processing.core.PApplet;
 
-public class MultiAdmin extends Thread {
+public class MultiAdmin extends Observable implements Runnable  {
 
 	private PApplet app;
 	private InetAddress DIRECCION;
@@ -23,6 +24,12 @@ public class MultiAdmin extends Thread {
 	private int turno;
 	private int maxRondas, ronda, turnosPorEstacion;
 	private int pasiveEnergy;
+	private int turnoTotal;
+	private int energiaTotal;
+	private int arbolesTotal;
+	private int energiaRonda;
+	private String season;
+	
 
 	private ArrayList<Player> players;
 
@@ -31,13 +38,18 @@ public class MultiAdmin extends Thread {
 	public MultiAdmin(PApplet app) {
 		this.app = app;
 		players = new ArrayList<Player>();
-		maxPlayers = 2;
+		maxPlayers = 6;
 		turnosPorEstacion = 5;
 		maxRondas = turnosPorEstacion*5;
 		ronda = 0;
 		turno = 0;
+		turnoTotal = 22;
+		energiaRonda = 6000;
+		arbolesTotal = 0;
+		energiaTotal = energiaRonda + ((int)(arbolesTotal/100)*energiaRonda);
 		//cambiar dependiendo de la estacion
 		pasiveEnergy = 500;
+		season = "summer";
 		generateRandomTurn();
 	}
 
@@ -110,6 +122,7 @@ public class MultiAdmin extends Thread {
 
 				try {
 					multicastConection.send(envio);
+					System.out.println("enviando");
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -161,7 +174,7 @@ public class MultiAdmin extends Thread {
 			}
 
 			player.getData(datos[2], datos[3], datos[4]);
-			if (players.size() < maxPlayers) {
+			if (players.size() <= maxPlayers) {
 				players.add(player);
 			}
 
@@ -204,13 +217,6 @@ public class MultiAdmin extends Thread {
 			players.get(id).setDemanda(demanda);
 
 		}
-		if (msgReceived.contains("IMEne")) {
-			String[] separated = msgReceived.split(":");
-			int id = Integer.parseInt(separated[1]);
-			int energia = Integer.parseInt(separated[2]);
-			players.get(id).setEnergiaGeneral(energia);
-
-		}
 		if (msgReceived.contains("termine")) {
 			turno++;
 			for (int i = 0; i < players.size(); i++) {
@@ -228,15 +234,21 @@ public class MultiAdmin extends Thread {
 				}
 				
 				ronda ++;
-				if (ronda == turnosPorEstacion) 
+				if (ronda == turnosPorEstacion) {
 					enviar ("autumn");
-				if (ronda == turnosPorEstacion*2) 
+					season = "fall";
+				} 
+				if (ronda == turnosPorEstacion*2){
 					enviar ("winter");
-				if (ronda == turnosPorEstacion*3) 
+					season = "winter";
+			} 
+				if (ronda == turnosPorEstacion*3) { 
 					enviar ("spring");
-				if (ronda == turnosPorEstacion*4) 
+					season ="spring";
+		} 
+				if (ronda == turnosPorEstacion*4) {
 					enviar ("juegoTerminado");
-				
+	} 
 				enviar("EnergyByRound:" + pasiveEnergy);
 			}
 			enviar("cambioTurno:" + turno);
@@ -251,5 +263,91 @@ public class MultiAdmin extends Thread {
 	public void setPlayers(ArrayList<Player> players) {
 		this.players = players;
 	}
+
+	public int getTurno() {
+		return turno;
+	}
+
+	public void setTurno(int turno) {
+		this.turno = turno;
+	}
+
+	public int getMaxRondas() {
+		return maxRondas;
+	}
+
+	public void setMaxRondas(int maxRondas) {
+		this.maxRondas = maxRondas;
+	}
+
+	public int getRonda() {
+		return ronda;
+	}
+
+	public void setRonda(int ronda) {
+		this.ronda = ronda;
+	}
+
+	public int getMaxPlayers() {
+		return maxPlayers;
+	}
+
+	public void setMaxPlayers(int maxPlayers) {
+		this.maxPlayers = maxPlayers;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public int getTurnoTotal() {
+		return turnoTotal;
+	}
+
+	public void setTurnoTotal(int turnoTotal) {
+		this.turnoTotal = turnoTotal;
+	}
+
+	public int getEnergiaTotal() {
+		return energiaTotal;
+	}
+
+	public void setEnergiaTotal(int energiaTotal) {
+		this.energiaTotal = energiaTotal;
+	}
+
+	public int getArbolesTotal() {
+		return arbolesTotal;
+	}
+
+	public void setArbolesTotal(int arbolesTotal) {
+		this.arbolesTotal = arbolesTotal;
+	}
+
+	public int getEnergiaRonda() {
+		return energiaRonda;
+	}
+
+	public void setEnergiaRonda(int energiaRonda) {
+		this.energiaRonda = energiaRonda;
+	}
+
+	public String getSeason() {
+		return season;
+	}
+
+	public void setSeason(String season) {
+		this.season = season;
+	}
+	
+	
+	
+	
+	
+	
 
 }

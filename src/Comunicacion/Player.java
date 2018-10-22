@@ -6,20 +6,22 @@ public class Player extends Thread {
 
 	private PApplet app;
 	private int posX, posY;
-	protected int poblacion, felicidad, demanda;
+	protected int poblacion, felicidad, demanda, arbol;
 	protected String nombre;
 	protected int season, energiaGeneral, turno, turnobByAdmin;
 	protected String notificacion;
-	protected boolean canPlay;
+	protected boolean canPlay =false;
 
 	public Player(PApplet app) {
 		this.app = app;
+		this.arbol=0;
 	}
 
 	public void getData(int poblacion, int demanda, int energiaGeneral) {
 		this.poblacion = poblacion;
 		this.demanda = demanda;
 		this.energiaGeneral = energiaGeneral;
+		
 		
 		nombre = "";
 	}
@@ -43,6 +45,16 @@ public class Player extends Thread {
 		if (turnobByAdmin == turno) {
 			app.text("Es tu turno", posX, posY+80);
 		} 
+	}
+	
+	
+
+	public int getArbol() {
+		return arbol;
+	}
+
+	public void setArbol(int arbol) {
+		this.arbol = arbol;
 	}
 
 	public int getPoblacion() {

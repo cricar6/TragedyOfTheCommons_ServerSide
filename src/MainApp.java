@@ -2,53 +2,52 @@
 import processing.core.PApplet;
 
 public class MainApp extends PApplet {
-	
+
 	private Logic logic;
 
 	public static void main(String[] args) {
 		PApplet.main("MainApp");
 	}
-	
-	@Override 
+
+	@Override
 	public void settings() {
-		size (1200, 700);
+		size(1200, 700);
 	}
-	
+
 	@Override
 	public void setup() {
 
-		logic = new Logic (this) ;
+		logic = new Logic(this);
 	}
-	
-	@Override 
+
+	@Override
 	public void draw() {
-		background (255);
-		//background (184,188,188);
+		background(255);
+		// background (184,188,188);
 		smooth();
 		logic.display();
 	}
-	
-	@Override 
+
+	@Override
 	public void mouseMoved() {
 		logic.moved();
 	}
-	
-	@Override 
+
+	@Override
 	public void mouseClicked() {
 		logic.clicked();
 	}
-	
+
 	@Override
 	public void mouseReleased() {
 		logic.released();
 	}
-	
-	public void mouseDragged () {
+
+	public void mouseDragged() {
 		logic.dragged();
 	}
+
 	public void keyPressed() {
 		logic.kpress();
 	}
-	
-
 }
