@@ -6,7 +6,7 @@ public class Player extends Thread {
 
 	private PApplet app;
 	private int posX, posY;
-	protected int poblacion, felicidad, demanda, arbol;
+	protected int poblacion, felicidad, demanda, arbol, arboles;
 	protected String nombre;
 	protected int season, energiaGeneral, turno, turnobByAdmin;
 	protected String notificacion;
@@ -15,6 +15,7 @@ public class Player extends Thread {
 	public Player(PApplet app) {
 		this.app = app;
 		this.arbol=0;
+		arboles = 0;
 	}
 
 	public void getData(int poblacion, int demanda, int energiaGeneral) {
@@ -127,7 +128,16 @@ public class Player extends Thread {
 
 	public void setCanPlay(boolean canPlay) {
 		this.canPlay = canPlay;
+	}
+
+	public int getArboles() {
+		return arboles;
+	}
+
+	public void setArboles(int arboles) {
+		this.arboles = arboles;
 	};
 
+	
 	
 }

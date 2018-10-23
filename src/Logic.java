@@ -1,5 +1,6 @@
 import java.awt.Color;
 import java.io.IOException;
+import java.io.Writer;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Observable;
@@ -7,6 +8,7 @@ import java.util.Observer;
 
 import Comunicacion.MultiAdmin;
 import Comunicacion.Player;
+import Writing.WriteFile;
 import processing.core.PApplet;
 import processing.core.PFont;
 import processing.core.PImage;
@@ -33,8 +35,18 @@ public class Logic implements Observer {
 	private ArrayList<PImage> bancoUno;
 	private ArrayList<PImage> bancoDos;
 
+	private WriteFile writerPopulation;
+	private WriteFile writerHappiness;
+
+	private ArrayList<ArrayList<String>> playersVarsPop;
+
+	private ArrayList<ArrayList<String>> playersVarsHappi;
+
 	public Logic(PApplet app) {
 		this.app = app;
+		playersVarsPop = new ArrayList<ArrayList<String>>();
+		playersVarsHappi = new ArrayList<ArrayList<String>>();
+
 		pantalla = "esperando";
 		bancoUno = new ArrayList<PImage>();
 		bancoDos = new ArrayList<PImage>();
@@ -43,14 +55,23 @@ public class Logic implements Observer {
 		admin = new MultiAdmin(app);
 		hiloConeccion = new Thread(admin);
 		hiloConeccion.start();
+		
+		writerPopulation = new WriteFile("population");
+		Thread p = new Thread(writerPopulation);
+		p.start();
+
+		writerHappiness = new WriteFile("happiness");
+		Thread h = new Thread(writerHappiness);
+		h.start();
+		
 		// saberMiIP();
 		// direccion = direccion.replace("/", "");
 		players = admin.getPlayers();
 
 	}
-
+	
 	public void display() {
-
+		
 		switch (pantalla) {
 		case "esperando":
 			app.image(bancoUno.get(0), 0, 0);
@@ -113,12 +134,74 @@ public class Logic implements Observer {
 			app.fill(206, 0, 100);
 			app.text(players.get(i).getNombre(), 135 + i * 187, 325);
 			app.fill(206, 49, 28);
-			app.text(players.get(i).getArbol(), 150 + i * 187, 510);
+			app.text(players.get(i).getArboles(), 150 + i * 187, 510);
 			app.text(players.get(i).getPoblacion(), 150 + i * 187, 567);
-			app.text(players.get(i).getFelicidad(), 150 + i * 187, 650);
+			app.text(players.get(i).getFelicidad(), 150 + i * 187, 600);
 		}
 
 	}
+
+
+	public void cargarContenido() {
+
+		// Cargo Imàgenes de pantalla UNO.
+		for (int i = 0; i < 7; i++) {
+			bancoUno.add(app.loadImage("./Source/pantallaUno(esperando)/" + i + ".png"));
+		}
+
+		// Cargo Imàgenes de pantalla DOS.
+		for (int i = 0; i < 7; i++) {
+			bancoDos.add(app.loadImage("./Source/pantallaDos(Servidor)/" + i + ".png"));
+		}
+
+		// Cargo Imàgenes de pantalla Fuentes.
+		cuerpo = app.createFont("./source/fonts/teko-regular.otf", 120);
+		titulo = app.createFont("./source/fonts/BebasNeue-Regular.otf", 120);
+
+	}
+
+	
+	public void esperando() {
+
+		app.textFont(cuerpo);
+		app.fill(206, 0, 94);
+		app.textSize(21);
+		for (int i = 0; i < players.size(); i++) {
+
+			app.text((players.get(i).getNombre()), 124 + i * 190, 600);
+
+		}
+
+	}
+
+	public void mostrarPersonas() {
+		app.image(bancoUno.get(players.size()), 0, 0);
+		
+		if (players.size() >=admin.getMaxPlayers() ) {
+			iniciarJuego = true;
+
+			app.pushStyle();
+			app.textAlign(app.CENTER, app.CENTER);
+			app.textFont(cuerpo);
+			app.fill(206, 49, 28);
+			app.textSize(29);
+			app.text("Cuando todo esté listo presiona ENTER", app.width / 2, 477);
+			app.popStyle();
+
+			if (iniciarJuego && app.keyCode == app.ENTER && !pantalla.equals("juego")) {
+				pantalla = "juego";
+				admin.enviar("inicio");
+				//System.out.println("envio inicio");
+			}
+
+		}
+
+	}
+
+	public void update(Observable o, Object arg) {
+
+	}
+
 
 	public void moved() {
 		// TODO Auto-generated method stub
@@ -142,102 +225,15 @@ public class Logic implements Observer {
 
 	public void kpress() {
 		// TODO Auto-generated method stub
-
-	}
-
-	public void cargarContenido() {
-
-		// Cargo Imàgenes de pantalla UNO.
-		for (int i = 0; i < 6; i++) {
-			bancoUno.add(app.loadImage("./Source/pantallaUno(esperando)/" + i + ".png"));
-		}
-
-		// Cargo Imàgenes de pantalla DOS.
-		for (int i = 0; i < 7; i++) {
-			bancoDos.add(app.loadImage("./Source/pantallaDos(Servidor)/" + i + ".png"));
-		}
-
-		// Cargo Imàgenes de pantalla Fuentes.
-		cuerpo = app.createFont("./source/fonts/teko-regular.otf", 120);
-		titulo = app.createFont("./source/fonts/BebasNeue-Regular.otf", 120);
-
-	}
-
-	public void saberMiIP() {
-		final byte[] ip;
-		byte[] dir;
-		try {
-			ip = InetAddress.getLocalHost().getAddress();
-			dir = InetAddress.getLocalHost().getAddress();
-			InetAddress diro = InetAddress.getByAddress(dir);
-			direccion = diro.toString();
-		} catch (IOException e) {
-			return;
+		if (app.BACKSPACE == app.key) {
+			playersVarsPop = admin.getPlayersVarsPop();
+			playersVarsHappi = admin.getPlayersVarsHappi();
+			
+			writerPopulation.setPlayers(playersVarsPop);
+			writerPopulation.run();
+			writerHappiness.setPlayers(playersVarsHappi);
+			writerHappiness.run();
+			
 		}
 	}
-
-	public void esperando() {
-
-		app.textFont(cuerpo);
-		app.fill(206, 0, 94);
-		app.textSize(21);
-		for (int i = 0; i < players.size(); i++) {
-
-			app.text((players.get(i).getNombre()), 124 + i * 190, 600);
-
-		}
-
-	}
-
-	public void mostrarPersonas() {
-
-		if (players.size() == 1) {
-			app.image(bancoUno.get(1), 0, 0);
-		}
-
-		if (players.size() == 2) {
-			app.image(bancoUno.get(2), 0, 0);
-		}
-
-		if (players.size() == 3) {
-			app.image(bancoUno.get(3), 0, 0);
-		}
-
-		if (players.size() == 4) {
-			app.image(bancoUno.get(4), 0, 0);
-		}
-
-		if (players.size() == 5) {
-			app.image(bancoUno.get(5), 0, 0);
-		}
-
-		if (players.size() == 6) {
-			app.image(bancoUno.get(6), 0, 0);
-		}
-
-		if (players.size() >=admin.getMaxPlayers() ) {
-			iniciarJuego = true;
-
-			app.pushStyle();
-			app.textAlign(app.CENTER, app.CENTER);
-			app.textFont(cuerpo);
-			app.fill(206, 49, 28);
-			app.textSize(29);
-			app.text("Cuando todo esté listo presiona ENTER", app.width / 2, 477);
-			app.popStyle();
-
-			if (iniciarJuego && app.keyCode == app.ENTER && !pantalla.equals("juego")) {
-				pantalla = "juego";
-				admin.enviar("inicio");
-
-			}
-
-		}
-
-	}
-
-	public void update(Observable o, Object arg) {
-
-	}
-
 }

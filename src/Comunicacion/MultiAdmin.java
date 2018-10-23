@@ -13,7 +13,7 @@ import java.util.Observable;
 
 import processing.core.PApplet;
 
-public class MultiAdmin extends Observable implements Runnable  {
+public class MultiAdmin extends Observable implements Runnable {
 
 	private PApplet app;
 	private InetAddress DIRECCION;
@@ -26,30 +26,42 @@ public class MultiAdmin extends Observable implements Runnable  {
 	private int pasiveEnergy;
 	private int turnoTotal;
 	private int energiaTotal;
-	private int arbolesTotal;
+	private float arbolesTotal;
 	private int energiaRonda;
 	private String season;
-	
 
 	private ArrayList<Player> players;
+	private ArrayList<ArrayList<String>> playersVarsPop;
+	private ArrayList<ArrayList<String>> playersVarsHappi;
 
 	private int maxPlayers;
 
 	public MultiAdmin(PApplet app) {
 		this.app = app;
 		players = new ArrayList<Player>();
-		maxPlayers = 6;
+		playersVarsPop = new ArrayList<ArrayList<String>>();
+		playersVarsHappi = new ArrayList<ArrayList<String>>();
+		maxPlayers = 2;
 		turnosPorEstacion = 5;
-		maxRondas = turnosPorEstacion*5;
+		maxRondas = turnosPorEstacion * 5;
 		ronda = 0;
 		turno = 0;
 		turnoTotal = 22;
-		energiaRonda = 6000;
+		energiaRonda = pasiveEnergy * players.size();
 		arbolesTotal = 0;
-		energiaTotal = energiaRonda + ((int)(arbolesTotal/100)*energiaRonda);
-		//cambiar dependiendo de la estacion
-		pasiveEnergy = 500;
+		energiaTotal = energiaRonda + ((int) (arbolesTotal / 100) * energiaRonda);
+		// cambiar dependiendo de la estacion
 		season = "summer";
+
+		if (season == "summer") {
+			pasiveEnergy = 500;
+		} else if (season == "summer") {
+			pasiveEnergy = 500;
+		} else if (season == "summer") {
+			pasiveEnergy = 500;
+		} else if (season == "summer") {
+			pasiveEnergy = 500;
+		}
 		generateRandomTurn();
 	}
 
@@ -176,6 +188,13 @@ public class MultiAdmin extends Observable implements Runnable  {
 			player.getData(datos[2], datos[3], datos[4]);
 			if (players.size() <= maxPlayers) {
 				players.add(player);
+				
+				playersVarsPop.add(new ArrayList<String>());
+				playersVarsHappi.add(new ArrayList<String>());
+
+				energiaRonda = players.size() * pasiveEnergy;
+				energiaTotal = energiaRonda + ((int) (arbolesTotal / 100) * energiaRonda);
+
 			}
 
 			if (players.size() == maxPlayers) {
@@ -217,14 +236,69 @@ public class MultiAdmin extends Observable implements Runnable  {
 			players.get(id).setDemanda(demanda);
 
 		}
+		if (msgReceived.contains("IMFel")) {
+			String[] separated = msgReceived.split(":");
+			int id = Integer.parseInt(separated[1]);
+			int felicidad = Integer.parseInt(separated[2]);
+			players.get(id).setFelicidad(felicidad);
+
+		}
+		if (msgReceived.contains("Solicitar")) {
+			String[] separated = msgReceived.split(":");
+			int id = Integer.parseInt(separated[1]);
+			int solicitando = Integer.parseInt(separated[2]);
+			
+			if (solicitando <= energiaTotal) {
+				//Enviar energia con lo solicitado
+				System.out.println("Enviaré: " + solicitando);
+				energiaTotal= energiaTotal - solicitando;
+				enviar("Solicitado:" + id + ":" + solicitando);
+
+				
+			} if (solicitando > energiaTotal) {
+				//Enviar 0 de energia
+				System.out.println("Enviaré: 0");
+				enviar("Solicitado:" + id + ":" + 0);
+			}
+		}
+		
+		if (msgReceived.contains("IMEnv")) {
+			String[] separated = msgReceived.split(":");
+			int id = Integer.parseInt(separated[1]);
+			int environmental = Integer.parseInt(separated[2]);
+			players.get(id).setArboles(environmental);
+
+			int arbolitos = 0;
+			for (int i = 0; i < players.size(); i++) {
+				arbolitos = arbolitos + players.get(i).getArboles();
+			}
+			arbolitos = arbolitos * 3;
+			arbolesTotal = arbolitos;
+
+		}
 		if (msgReceived.contains("termine")) {
 			turno++;
+
+			energiaTotal -= pasiveEnergy;
+
 			for (int i = 0; i < players.size(); i++) {
 				players.get(i).turnobByAdmin = turno;
 			}
+
+			if (season == "summer") {
+				pasiveEnergy = 500;
+			} else if (season == "summer") {
+				pasiveEnergy = 500;
+			} else if (season == "summer") {
+				pasiveEnergy = 500;
+			} else if (season == "summer") {
+				pasiveEnergy = 500;
+			}
+
 			if (turno == maxPlayers) {
 				turno = 0;
-				
+
+				terminarTurno();
 				ArrayList<Integer> num = generateRandomTurn();
 				System.out.println(num);
 
@@ -232,30 +306,52 @@ public class MultiAdmin extends Observable implements Runnable  {
 					players.get(i).turno = num.get(i);
 					enviar("AsignTurn:" + i + ":" + num.get(i));
 				}
-				
-				ronda ++;
+
+				ronda++;
 				if (ronda == turnosPorEstacion) {
-					enviar ("autumn");
+					enviar("autumn");
 					season = "fall";
-				} 
-				if (ronda == turnosPorEstacion*2){
-					enviar ("winter");
+				}
+				if (ronda == turnosPorEstacion * 2) {
+					enviar("winter");
 					season = "winter";
-			} 
-				if (ronda == turnosPorEstacion*3) { 
-					enviar ("spring");
-					season ="spring";
-		} 
-				if (ronda == turnosPorEstacion*4) {
-					enviar ("juegoTerminado");
-	} 
+				}
+				if (ronda == turnosPorEstacion * 3) {
+					enviar("spring");
+					season = "spring";
+				}
+				if (ronda == turnosPorEstacion * 4) {
+					enviar("juegoTerminado");
+				}
+				//Comprobar envio si hay suficiente energia
 				enviar("EnergyByRound:" + pasiveEnergy);
+				energiaRonda = pasiveEnergy * players.size();
+				
+				
+				energiaTotal = energiaRonda + (int) ((arbolesTotal / 100) * energiaRonda);
+				System.out.println(((float) arbolesTotal / 10) + "percentage");
+				System.out.println((int) ((arbolesTotal / 100) * energiaRonda));
+
 			}
 			enviar("cambioTurno:" + turno);
+
 		}
 
 	}
 
+	public void terminarTurno () {
+
+		for (int i = 0; i < players.size(); i++) {
+			playersVarsPop.get(i).add(players.get(i).getPoblacion()+"");
+			playersVarsHappi.get(i).add(players.get(i).getFelicidad()+"");
+
+		}
+
+		System.out.println(playersVarsPop+ "pop");
+		System.out.println(playersVarsHappi+ "happi");
+	}
+	
+	
 	public ArrayList<Player> getPlayers() {
 		return players;
 	}
@@ -320,7 +416,7 @@ public class MultiAdmin extends Observable implements Runnable  {
 		this.energiaTotal = energiaTotal;
 	}
 
-	public int getArbolesTotal() {
+	public float getArbolesTotal() {
 		return arbolesTotal;
 	}
 
@@ -343,11 +439,22 @@ public class MultiAdmin extends Observable implements Runnable  {
 	public void setSeason(String season) {
 		this.season = season;
 	}
-	
-	
-	
-	
-	
-	
+
+	public ArrayList<ArrayList<String>> getPlayersVarsPop() {
+		return playersVarsPop;
+	}
+
+	public void setPlayersVarsPop(ArrayList<ArrayList<String>> playersVarsPop) {
+		this.playersVarsPop = playersVarsPop;
+	}
+
+	public ArrayList<ArrayList<String>> getPlayersVarsHappi() {
+		return playersVarsHappi;
+	}
+
+	public void setPlayersVarsHappi(ArrayList<ArrayList<String>> playersVarsHappi) {
+		this.playersVarsHappi = playersVarsHappi;
+	}
+
 
 }
