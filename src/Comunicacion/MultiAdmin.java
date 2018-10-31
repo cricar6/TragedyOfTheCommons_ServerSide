@@ -47,7 +47,7 @@ public class MultiAdmin extends Observable implements Runnable {
 		players = new ArrayList<Player>();
 		playersVarsPop = new ArrayList<ArrayList<String>>();
 		playersVarsHappi = new ArrayList<ArrayList<String>>();
-		maxPlayers = 2;
+		maxPlayers = 3;
 		turnosPorEstacion = 5;
 		maxRondas = turnosPorEstacion * 5;
 		ronda = 0;
