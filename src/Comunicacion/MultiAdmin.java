@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Observable;
 
+import Writing.WriteFile;
 import processing.core.PApplet;
 
 public class MultiAdmin extends Observable implements Runnable {
@@ -29,11 +30,16 @@ public class MultiAdmin extends Observable implements Runnable {
 	private float arbolesTotal;
 	private int energiaRonda;
 	private String season;
+	
+	private boolean juegoTerminado = false;
 
 	private ArrayList<Player> players;
 	private ArrayList<ArrayList<String>> playersVarsPop;
 	private ArrayList<ArrayList<String>> playersVarsHappi;
 
+	private WriteFile writerPopulation;
+	private WriteFile writerHappiness;
+	
 	private int maxPlayers;
 
 	public MultiAdmin(PApplet app) {
@@ -54,15 +60,25 @@ public class MultiAdmin extends Observable implements Runnable {
 		season = "summer";
 
 		if (season == "summer") {
-			pasiveEnergy = 500;
-		} else if (season == "summer") {
-			pasiveEnergy = 500;
-		} else if (season == "summer") {
-			pasiveEnergy = 500;
-		} else if (season == "summer") {
-			pasiveEnergy = 500;
+			pasiveEnergy = 2500;
+		} else if (season == "autumn") {
+			pasiveEnergy = 2300;
+		} else if (season == "winter") {
+			pasiveEnergy = 1700;
+		} else if (season == "spring") {
+			pasiveEnergy = 2400;
 		}
 		generateRandomTurn();
+		
+		
+		writerPopulation = new WriteFile("population");
+		Thread p = new Thread(writerPopulation);
+		p.start();
+
+		writerHappiness = new WriteFile("happiness");
+		Thread h = new Thread(writerHappiness);
+		h.start();
+		
 	}
 
 	@Override
@@ -120,6 +136,7 @@ public class MultiAdmin extends Observable implements Runnable {
 			DIRECCION = InetAddress.getByName("224.0.0.0");
 			multicastConection = new MulticastSocket(PUERTO);
 			multicastConection.joinGroup(DIRECCION);
+			
 		} catch (IOException e) {
 			System.out.println(e);
 		}
@@ -201,7 +218,7 @@ public class MultiAdmin extends Observable implements Runnable {
 				for (int i = 0; i < players.size(); i++) {
 					players.get(i).setCanPlay(true);
 				}
-				enviar("IMCanPlay:true");
+				
 
 				ArrayList<Integer> num = generateRandomTurn();
 				System.out.println(num);
@@ -209,6 +226,7 @@ public class MultiAdmin extends Observable implements Runnable {
 				for (int i = 0; i < players.size(); i++) {
 					enviar("AsignTurn:" + i + ":" + num.get(i));
 				}
+				
 
 			}
 
@@ -279,20 +297,20 @@ public class MultiAdmin extends Observable implements Runnable {
 		if (msgReceived.contains("termine")) {
 			turno++;
 
-			energiaTotal -= pasiveEnergy;
+			//energiaTotal -= pasiveEnergy;
 
 			for (int i = 0; i < players.size(); i++) {
 				players.get(i).turnobByAdmin = turno;
 			}
 
 			if (season == "summer") {
-				pasiveEnergy = 500;
-			} else if (season == "summer") {
-				pasiveEnergy = 500;
-			} else if (season == "summer") {
-				pasiveEnergy = 500;
-			} else if (season == "summer") {
-				pasiveEnergy = 500;
+				pasiveEnergy = 2500;
+			} else if (season == "autumn") {
+				pasiveEnergy = 2300;
+			} else if (season == "winter") {
+				pasiveEnergy = 1700;
+			} else if (season == "spring") {
+				pasiveEnergy = 2400;
 			}
 
 			if (turno == maxPlayers) {
@@ -310,7 +328,7 @@ public class MultiAdmin extends Observable implements Runnable {
 				ronda++;
 				if (ronda == turnosPorEstacion) {
 					enviar("autumn");
-					season = "fall";
+					season = "autumn";
 				}
 				if (ronda == turnosPorEstacion * 2) {
 					enviar("winter");
@@ -346,12 +364,35 @@ public class MultiAdmin extends Observable implements Runnable {
 			playersVarsHappi.get(i).add(players.get(i).getFelicidad()+"");
 
 		}
+		
+		if (ronda == maxRondas) {
+			terminarJuego();
+		}
 
 		System.out.println(playersVarsPop+ "pop");
 		System.out.println(playersVarsHappi+ "happi");
 	}
 	
+	public void terminarJuego() {
+		
+		writerPopulation.setPlayers(playersVarsPop);
+		writerPopulation.run();
+		writerHappiness.setPlayers(playersVarsHappi);
+		writerHappiness.run();
+		
+		juegoTerminado = true;
+	}
 	
+	
+	
+	public boolean isJuegoTerminado() {
+		return juegoTerminado;
+	}
+
+	public void setJuegoTerminado(boolean juegoTerminado) {
+		this.juegoTerminado = juegoTerminado;
+	}
+
 	public ArrayList<Player> getPlayers() {
 		return players;
 	}

@@ -90,7 +90,14 @@ public class Logic implements Observer {
 
 			app.image(bancoDos.get(0), 0, 0);
 			CargarDatos();
+			
+			if (admin.isJuegoTerminado()==true) {
+				pantalla = "final";
+			}
 
+			break;
+		case "final" : 
+			System.out.println("hi");
 			break;
 
 		}
@@ -120,7 +127,7 @@ public class Logic implements Observer {
 		app.textFont(cuerpo);
 		app.fill(206, 49, 28);
 		app.textSize(70);
-		app.text(admin.getTurnoTotal()-admin.getRonda(),120,105);
+		app.text(admin.getMaxRondas()-admin.getRonda(),120,105);
 		app.fill(206, 0, 100);
 		app.textSize(40);
 		app.text(admin.getEnergiaRonda(),800,112);
@@ -131,12 +138,15 @@ public class Logic implements Observer {
 		
 
 		for (int i = 0; i < players.size(); i++) {
-			app.fill(206, 0, 100);
+			app.colorMode(app.RGB);
+			app.fill(255);
 			app.text(players.get(i).getNombre(), 135 + i * 187, 325);
+			
+			app.colorMode(app.HSB,360,100,100);
 			app.fill(206, 49, 28);
 			app.text(players.get(i).getArboles(), 150 + i * 187, 510);
 			app.text(players.get(i).getPoblacion(), 150 + i * 187, 567);
-			app.text(players.get(i).getFelicidad(), 150 + i * 187, 600);
+			app.text(players.get(i).getFelicidad(), 150 + i * 187, 620);
 		}
 
 	}
@@ -170,6 +180,7 @@ public class Logic implements Observer {
 
 			app.text((players.get(i).getNombre()), 124 + i * 190, 600);
 
+			//System.out.println(players.get(i).getNombre());
 		}
 
 	}
@@ -190,7 +201,8 @@ public class Logic implements Observer {
 
 			if (iniciarJuego && app.keyCode == app.ENTER && !pantalla.equals("juego")) {
 				pantalla = "juego";
-				admin.enviar("inicio");
+				admin.enviar("IMCanPlay:true");
+
 				//System.out.println("envio inicio");
 			}
 

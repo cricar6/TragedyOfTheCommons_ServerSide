@@ -22,8 +22,8 @@ public class MainApp extends PApplet {
 
 	@Override
 	public void draw() {
-		background(255);
-		// background (184,188,188);
+		colorMode(HSB,360,100,100);
+		background (208,3,85);
 		smooth();
 		logic.display();
 	}
